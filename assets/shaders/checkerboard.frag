@@ -11,6 +11,16 @@ out vec4 frag_color;
 uniform int size = 32;
 uniform vec3 colors[2];
 
-void main(){
-    frag_color = vec4(colors[0], 1.0);
+void main() {
+    // Get the pixel coordinates
+    ivec2 pixel = ivec2(gl_FragCoord.xy);
+
+    // Determine which tile we are in
+    int tile_x = pixel.x / size;
+    int tile_y = pixel.y / size;
+
+    // Alternate colors: sum tile indices and mod 2
+    int index = (tile_x + tile_y) % 2;
+
+    frag_color = vec4(colors[index], 1.0);
 }
