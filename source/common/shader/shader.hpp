@@ -18,9 +18,11 @@ namespace our {
     public:
         ShaderProgram(){
             //TODO: (Req 1) Create A shader program
+            program = glCreateProgram();
         }
         ~ShaderProgram(){
             //TODO: (Req 1) Delete a shader program
+            glDeleteProgram(program);
         }
 
         bool attach(const std::string &filename, GLenum type) const;
@@ -33,6 +35,7 @@ namespace our {
 
         GLuint getUniformLocation(const std::string &name) {
             //TODO: (Req 1) Return the location of the uniform with the given name
+            return glGetUniformLocation(program, name.c_str());
         }
 
         void set(const std::string &uniform, GLfloat value) {
@@ -64,6 +67,9 @@ namespace our {
         }
 
         //TODO: (Req 1) Delete the copy constructor and assignment operator.
+        ShaderProgram(const ShaderProgram &) = delete;
+        ShaderProgram &operator=(const ShaderProgram &) = delete;
+
         //Question: Why do we delete the copy constructor and assignment operator?
     };
 
