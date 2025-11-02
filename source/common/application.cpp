@@ -184,7 +184,6 @@ int our::Application::run(int run_for_frames) {
     glfwMakeContextCurrent(window);         // Tell GLFW to make the context of our window the main context on the current thread.
 
     gladLoadGL(glfwGetProcAddress);         // Load the OpenGL functions from the driver
-    glClearColor(0.75, 0.125, 0.5, 1.0);
 
     // Print information about the OpenGL context
     std::cout << "VENDOR          : " << glGetString(GL_VENDOR) << std::endl;
@@ -273,7 +272,6 @@ int our::Application::run(int run_for_frames) {
 
         // Get the current time (the time at which we are starting the current frame).
         double current_frame_time = glfwGetTime();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Call onDraw, in which we will draw the current frame, and send to it the time difference between the last and current frame
         if(currentState) currentState->onDraw(current_frame_time - last_frame_time);
