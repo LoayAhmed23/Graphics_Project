@@ -34,8 +34,17 @@ namespace our {
         // - the eye position which is the point (0,0,0) but after being transformed by M
         // - the center position which is the point (0,0,-1) but after being transformed by M
         // - the up direction which is the vector (0,1,0) but after being transformed by M
+
         // then you can use glm::lookAt
-        return glm::mat4(1.0f);
+        // Transform points from camera space to world space
+        glm::vec3 eye = M * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        glm::vec3 center = M * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f);
+        
+        // Transform the 'up' vector (a direction) from camera space to world space
+        // Note: w = 0.0 for vectors (directions)
+        glm::vec3 up = M * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+
+        return glm::lookAt(eye, center, up);
     }
 
     // Creates and returns the camera projection matrix
@@ -46,6 +55,24 @@ namespace our {
         // It takes left, right, bottom, top. Bottom is -orthoHeight/2 and Top is orthoHeight/2.
         // Left and Right are the same but after being multiplied by the aspect ratio
         // For the perspective camera, you can use glm::perspective
-        return glm::mat4(1.0f);
+        // Calculate the aspect ratio
+        float aspect = (float)viewportSize.x / (float)viewportSize.y;
+        
+        if (cameraType == CameraType::PERSPECTIVE) {
+            // Create a perspective projection matrix
+            return glm::perspective(fovY, aspect, near, far);
+        } else if (cameraType == CameraType::ORTHOGRAPHIC) {
+            // Calculate orthographic bounds
+            float orthoWidth = orthoHeight * aspect;
+            float top = orthoHeight / 2.0f;
+            float bottom = -top;
+            float right = orthoWidth / 2.0f;
+            float left = -right;
+            // Create an orthographic projection matrix
+            return glm::ortho(left, right, bottom, top, near, far);
+        }
+        //return glm::mat4(1.0f);
     }
 }
+
+
