@@ -35,7 +35,32 @@ our::Texture2D* our::texture_utils::loadImage(const std::string& filename, bool 
     our::Texture2D* texture = new our::Texture2D();
     //Bind the texture such that we upload the image data to its storage
     //TODO: (Req 5) Finish this function to fill the texture with the data found in "pixels"
+    // 1. Bind the texture
+    texture->bind();
     
+    // 2. Upload the pixel data to the GPU
+    // We use GL_RGBA8 as the internal format since we requested 4 channels.
+    // We use GL_RGBA as the source format and GL_UNSIGNED_BYTE as the source type.
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    // 3. Set texture parameters (filtering and wrapping)
+    if (generate_mipmap) {
+        // Generate mipmaps
+        glGenerateMipmap(GL_TEXTURE_2D);
+        // Set minification filter to use tri-linear filtering (linear filtering between mipmap levels)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        // Set magnification filter to use linear filtering
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    } else {
+        // Set minification filter to use linear filtering (no mipmaps)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        // Set magnification filter to use linear filtering
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+    
+    // Set wrapping mode to REPEAT (default)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     stbi_image_free(pixels); //Free image data after uploading to GPU
     return texture;
 }
