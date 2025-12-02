@@ -86,4 +86,98 @@ namespace our {
         sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
     }
 
+
+    // LitMaterial setup - binds all PBR textures to their respective texture units
+    void LitMaterial::setup() const {
+        // Setup pipeline state and shader
+        Material::setup();
+        
+        int textureUnit = 0;
+        
+        // Bind albedo texture to unit 0
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
+        if (albedo) {
+            albedo->bind();
+        } else {
+            Texture2D::unbind();
+        }
+        shader->set("material.albedo", textureUnit);
+        textureUnit++;
+        
+        // Bind specular texture to unit 1
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
+        if (specular) {
+            specular->bind();
+        } else {
+            Texture2D::unbind();
+        }
+        shader->set("material.specular", textureUnit);
+        textureUnit++;
+        
+        // Bind roughness texture to unit 2
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
+        if (roughness) {
+            roughness->bind();
+        } else {
+            Texture2D::unbind();
+        }
+        shader->set("material.roughness", textureUnit);
+        textureUnit++;
+        
+        // Bind ambient occlusion texture to unit 3
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
+        if (ambient_occlusion) {
+            ambient_occlusion->bind();
+        } else {
+            Texture2D::unbind();
+        }
+        shader->set("material.ambient_occlusion", textureUnit);
+        textureUnit++;
+        
+        // Bind emission texture to unit 4
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
+        if (emission) {
+            emission->bind();
+        } else {
+            Texture2D::unbind();
+        }
+        shader->set("material.emission", textureUnit);
+        textureUnit++;
+        
+        // Bind sampler to all texture units
+        if (sampler) {
+            for (int i = 0; i < textureUnit; i++) {
+                sampler->bind(i);
+            }
+        }
+        
+        // Set material properties
+        shader->set("material.albedoTint", albedoTint);
+        shader->set("material.specularStrength", specularStrength);
+        shader->set("material.roughnessValue", roughnessValue);
+        shader->set("material.emissionTint", emissionTint);
+    }
+
+    // Deserialize LitMaterial from JSON
+    void LitMaterial::deserialize(const nlohmann::json& data){
+        Material::deserialize(data);
+        if(!data.is_object()) return;
+        
+        // Load textures
+        albedo = AssetLoader<Texture2D>::get(data.value("albedo", ""));
+        specular = AssetLoader<Texture2D>::get(data.value("specular", ""));
+        roughness = AssetLoader<Texture2D>::get(data.value("roughness", ""));
+        ambient_occlusion = AssetLoader<Texture2D>::get(data.value("ambient_occlusion", ""));
+        emission = AssetLoader<Texture2D>::get(data.value("emission", ""));
+        
+        // Load sampler
+        sampler = AssetLoader<Sampler>::get(data.value("sampler", ""));
+        
+        // Load material properties
+        albedoTint = data.value("albedoTint", glm::vec3(1.0f));
+        specularStrength = data.value("specularStrength", 1.0f);
+        roughnessValue = data.value("roughnessValue", 0.5f);
+        emissionTint = data.value("emissionTint", glm::vec3(0.0f));
+    }
+
 }
