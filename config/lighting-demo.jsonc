@@ -1,0 +1,94 @@
+{
+    "start-scene": "renderer-test",
+    "window": {
+        "title": "Lighting Test",
+        "size": {
+            "width": 512,
+            "height": 512
+        },
+        "fullscreen": false
+    },
+    "screenshots": {
+        "directory": "screenshots/lighting-test",
+        "requests": [
+            { "file": "test-0.png", "frame": 1 }
+        ]
+    },
+    "scene": {
+        "renderer": {},
+        "assets": {
+            "shaders": {
+                "lit": {
+                    "vs": "../assets/shaders/lit.vert",
+                    "fs": "../assets/shaders/lit.frag"
+                }
+            },
+            "textures": {
+                "wood": "../assets/textures/wood.jpg"
+            },
+            "meshes": {
+                "sphere": "../assets/models/sphere.obj"
+            },
+            "samplers": {
+                "default": {}
+            },
+            "materials": {
+                "lit-wood": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": {
+                            "enabled": true,
+                            "culledFace": "back"
+                        }
+                    },
+                    "albedo": "wood",
+                    "albedoTint": [1.0, 1.0, 1.0],
+                    "specularStrength": 0.5,
+                    "roughnessValue": 0.3,
+                    "sampler": "default"
+                }
+            }
+        },
+        "world": [
+            {
+                "components": [
+                    {
+                        "type": "Camera",
+                        "fovY": 90,
+                        "near": 0.1,
+                        "far": 100
+                    },
+                    {
+                        "type": "Transform",
+                        "position": [0, 0, 5]
+                    }
+                ]
+            },
+            {
+                "components": [
+                    {
+                        "type": "Light",
+                        "lightType": "Directional",
+                        "color": [1.0, 1.0, 0.9],
+                        "direction": [0.3, -1.0, 0.5]
+                    }
+                ]
+            },
+            {
+                "components": [
+                    {
+                        "type": "Transform",
+                        "position": [0, 0, 0],
+                        "scale": [2, 2, 2]
+                    },
+                    {
+                        "type": "Mesh Renderer",
+                        "mesh": "sphere",
+                        "material": "lit-wood"
+                    }
+                ]
+            }
+        ]
+    }
+}

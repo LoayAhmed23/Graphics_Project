@@ -1,9 +1,86 @@
 #include "forward-renderer.hpp"
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
+#include "../components/light.hpp"
+#include <iostream>
 
 namespace our
 {
+
+    void ForwardRenderer::setupLightingUniforms(World *world, ShaderProgram *shader, const glm::vec3 &cameraPosition)
+    {
+        // Query all entities with light components
+        std::vector<LightComponent *> lights;
+        for (auto entity : world->getEntities())
+        {
+            if (auto light = entity->getComponent<LightComponent>())
+            {
+                lights.push_back(light);
+                if (lights.size() >= 16)
+                    break; // MAX_LIGHTS
+            }
+        }
+
+        // DEBUG: Print light count
+        std::cout << "DEBUG: Found " << lights.size() << " lights in scene" << std::endl;
+
+        // Set light count
+        shader->set("lightCount", static_cast<int>(lights.size()));
+
+        // Set camera position for specular calculations
+        shader->set("cameraPosition", cameraPosition);
+
+        // Upload each light's data to the shader
+        for (size_t i = 0; i < lights.size(); i++)
+        {
+            LightComponent *light = lights[i];
+            Entity *lightEntity = light->getOwner();
+            
+            // Use explicit direction/position if provided, otherwise extract from transform
+            glm::vec3 position;
+            glm::vec3 direction;
+            
+            if (glm::length(light->direction) > 0.001f)
+            {
+                // Use explicit direction
+                direction = glm::normalize(light->direction);
+            }
+            else
+            {
+                // Extract direction from transform
+                glm::mat4 lightTransform = lightEntity->getLocalToWorldMatrix();
+                direction = glm::normalize(glm::vec3(lightTransform * glm::vec4(0, 0, -1, 0)));
+            }
+            
+            if (glm::length(light->position) > 0.001f)
+            {
+                // Use explicit position
+                position = light->position;
+            }
+            else
+            {
+                // Extract position from transform
+                glm::mat4 lightTransform = lightEntity->getLocalToWorldMatrix();
+                position = glm::vec3(lightTransform[3]);
+            }
+
+            // DEBUG: Print light info
+            std::cout << "Light " << i << ": Type=" << static_cast<int>(light->lightType) 
+                      << " Color=(" << light->color.r << "," << light->color.g << "," << light->color.b << ")"
+                      << " Dir=(" << direction.x << "," << direction.y << "," << direction.z << ")" << std::endl;
+
+            // Build uniform name prefix
+            std::string prefix = "lights[" + std::to_string(i) + "].";
+
+            // Set light properties
+            shader->set(prefix + "type", static_cast<int>(light->lightType));
+            shader->set(prefix + "color", light->color);
+            shader->set(prefix + "position", position);
+            shader->set(prefix + "direction", direction);
+            shader->set(prefix + "coneAngles", light->coneAngles);
+            shader->set(prefix + "attenuation", light->attenuation);
+        }
+    }
 
     void ForwardRenderer::initialize(glm::ivec2 windowSize, const nlohmann::json &config)
     {
@@ -130,6 +207,7 @@ namespace our
         CameraComponent *camera = nullptr;
         opaqueCommands.clear();
         transparentCommands.clear();
+        std::cout << "DEBUG: Starting render, entity count: " << world->getEntities().size() << std::endl;
         for (auto entity : world->getEntities())
         {
             // If we hadn't found a camera yet, we look for a camera in this entity
@@ -138,6 +216,7 @@ namespace our
             // If this entity has a mesh renderer component
             if (auto meshRenderer = entity->getComponent<MeshRendererComponent>(); meshRenderer)
             {
+                std::cout << "DEBUG: Found mesh renderer!" << std::endl;
                 // We construct a command from it
                 RenderCommand command;
                 command.localToWorld = meshRenderer->getOwner()->getLocalToWorldMatrix();
@@ -198,13 +277,39 @@ namespace our
         // TODO: (Req 9) Clear the color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Get camera position for lighting calculations
+        glm::vec3 cameraPosition = glm::vec3(camera->getOwner()->getLocalToWorldMatrix() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
         // TODO: (Req 9) Draw all the opaque commands
         //  Don't forget to set the "transform" uniform to be equal the model-view-projection matrix for each render command
         for (const auto &command : opaqueCommands)
         {
             command.material->setup();
-            glm::mat4 transform = VP * command.localToWorld;
-            command.material->shader->set("transform", transform);
+
+            // Check if this is a lit material and setup lighting
+            LitMaterial *litMaterial = dynamic_cast<LitMaterial *>(command.material);
+            std::cout << "DEBUG: Material cast result: " << (litMaterial ? "LitMaterial" : "Other") << std::endl;
+            if (litMaterial)
+            {
+                // For lit materials, set model, view, projection matrices separately
+                glm::mat4 view = camera->getViewMatrix();
+                glm::mat4 projection = camera->getProjectionMatrix(windowSize);
+
+                litMaterial->shader->set("model", command.localToWorld);
+                litMaterial->shader->set("view", view);
+                litMaterial->shader->set("projection", projection);
+                litMaterial->shader->set("model_inverse_transpose", glm::transpose(glm::inverse(command.localToWorld)));
+
+                // Setup lighting uniforms
+                setupLightingUniforms(world, litMaterial->shader, cameraPosition);
+            }
+            else
+            {
+                // For non-lit materials, use the combined transform
+                glm::mat4 transform = VP * command.localToWorld;
+                command.material->shader->set("transform", transform);
+            }
+
             command.mesh->draw();
         }
 
@@ -240,8 +345,30 @@ namespace our
         for (const auto &command : transparentCommands)
         {
             command.material->setup();
-            glm::mat4 transform = VP * command.localToWorld;
-            command.material->shader->set("transform", transform);
+
+            // Check if this is a lit material and setup lighting
+            LitMaterial *litMaterial = dynamic_cast<LitMaterial *>(command.material);
+            if (litMaterial)
+            {
+                // For lit materials, set model, view, projection matrices separately
+                glm::mat4 view = camera->getViewMatrix();
+                glm::mat4 projection = camera->getProjectionMatrix(windowSize);
+
+                litMaterial->shader->set("model", command.localToWorld);
+                litMaterial->shader->set("view", view);
+                litMaterial->shader->set("projection", projection);
+                litMaterial->shader->set("model_inverse_transpose", glm::transpose(glm::inverse(command.localToWorld)));
+
+                // Setup lighting uniforms
+                setupLightingUniforms(world, litMaterial->shader, cameraPosition);
+            }
+            else
+            {
+                // For non-lit materials, use the combined transform
+                glm::mat4 transform = VP * command.localToWorld;
+                command.material->shader->set("transform", transform);
+            }
+
             command.mesh->draw();
         }
 
