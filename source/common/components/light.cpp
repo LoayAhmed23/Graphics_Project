@@ -4,13 +4,12 @@
 namespace our
 {
 
-    // Reads the light component data from a json object
     void LightComponent::deserialize(const nlohmann::json &data)
     {
         if (!data.is_object())
             return;
 
-        // Read light type
+        // Deserialize light type
         std::string typeStr = data.value("lightType", "directional");
         if (typeStr == "directional")
         {
@@ -25,28 +24,31 @@ namespace our
             lightType = LightType::SPOT;
         }
 
-        // Read color
+        // Deserialize color (default white)
         color = data.value("color", glm::vec3(1.0f, 1.0f, 1.0f));
 
-        // Read cone angles (for spot lights) - convert from degrees to radians
+        // Deserialize direction (for directional/spot lights)
+        direction = data.value("direction", glm::vec3(0.0f, 0.0f, 0.0f));
+
+        // Deserialize position (for point/spot lights)
+        position = data.value("position", glm::vec3(0.0f, 0.0f, 0.0f));
+
+        // Deserialize attenuation (constant, linear, quadratic)
+        attenuation = data.value("attenuation", glm::vec3(1.0f, 0.0f, 0.0f));
+
+        // Deserialize cone angles (inner, outer) for spot lights
+        // These can be specified in degrees in JSON and will be converted to radians
         if (data.contains("coneAngles"))
         {
-            glm::vec2 angles = data["coneAngles"];
-            coneAngles = glm::vec2(glm::radians(angles.x), glm::radians(angles.y));
+            glm::vec2 angles = data["coneAngles"].get<glm::vec2>();
+            // Convert degrees to radians
+            coneAngles = glm::radians(angles);
         }
         else
         {
-            coneAngles = glm::vec2(glm::radians(30.0f), glm::radians(45.0f));
+            // Default: 22.5 and 45 degrees
+            coneAngles = glm::vec2(glm::radians(22.5f), glm::radians(45.0f));
         }
-
-        // Read attenuation coefficients
-        attenuation = data.value("attenuation", glm::vec3(1.0f, 0.0f, 0.0f));
-
-        // Read optional explicit direction (for directional/spot lights)
-        direction = data.value("direction", glm::vec3(0.0f));
-
-        // Read optional explicit position (for point/spot lights)
-        position = data.value("position", glm::vec3(0.0f));
     }
 
 }

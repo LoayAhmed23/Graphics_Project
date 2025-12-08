@@ -57,41 +57,30 @@ namespace our
         void deserialize(const nlohmann::json &data) override;
     };
 
-    // This material supports physically-based rendering with multiple texture maps
-    // It includes texture slots for: albedo, specular, roughness, ambient_occlusion, and emission
-    // This material is designed to work with lighting shaders that support multiple lights
-    class LitMaterial : public Material
+    // LitMaterial - A material that supports Phong lighting model
+    // Inherits from TexturedMaterial to get texture support, plus adds lighting properties
+    // Supports PBR-like texture maps: albedo (from parent), specular, roughness, AO, emission
+    class LitMaterial : public TexturedMaterial
     {
     public:
-        // Texture maps for PBR-style rendering
-        Texture2D *albedo;            // Base color texture
-        Texture2D *specular;          // Specular reflectivity texture
-        Texture2D *roughness;         // Surface roughness texture
-        Texture2D *ambient_occlusion; // Ambient occlusion texture
-        Texture2D *emission;          // Emission (glow) texture
+        // Phong lighting material properties (used as fallback when textures not provided)
+        glm::vec3 ambient = glm::vec3(0.1f, 0.1f, 0.1f);  // Ka - Ambient reflectivity
+        glm::vec3 diffuse = glm::vec3(0.8f, 0.8f, 0.8f);  // Kd - Diffuse reflectivity
+        glm::vec3 specular = glm::vec3(0.5f, 0.5f, 0.5f); // Ks - Specular reflectivity
+        float shininess = 32.0f;                          // Shininess exponent
 
-        Sampler *sampler; // Sampler for all textures
+        // Global ambient light (can be overridden per-scene)
+        glm::vec3 ambientLight = glm::vec3(0.1f, 0.1f, 0.1f);
 
-        // Material properties
-        glm::vec3 albedoTint;   // Tint for albedo
-        float specularStrength; // Specular strength multiplier
-        float roughnessValue;   // Roughness value (if no texture)
-        glm::vec3 emissionTint; // Emission tint
+        // PBR-like texture maps
+        // Albedo/diffuse map is inherited from TexturedMaterial (texture member)
+        Texture2D *specular_map = nullptr;          // Specular intensity map
+        Texture2D *roughness_map = nullptr;         // Roughness map (affects shininess)
+        Texture2D *ambient_occlusion_map = nullptr; // Ambient occlusion map (baked shadows)
+        Texture2D *emissive_map = nullptr;          // Emission/self-illumination map
 
-        // Constructor
-        LitMaterial()
-        {
-            albedo = nullptr;
-            specular = nullptr;
-            roughness = nullptr;
-            ambient_occlusion = nullptr;
-            emission = nullptr;
-            sampler = nullptr;
-            albedoTint = glm::vec3(1.0f);
-            specularStrength = 1.0f;
-            roughnessValue = 0.5f;
-            emissionTint = glm::vec3(0.0f);
-        }
+        // Emission color multiplier
+        glm::vec3 emissive_color = glm::vec3(0.0f, 0.0f, 0.0f);
 
         void setup() const override;
         void deserialize(const nlohmann::json &data) override;

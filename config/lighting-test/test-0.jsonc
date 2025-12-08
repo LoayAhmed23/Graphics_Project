@@ -1,0 +1,261 @@
+{
+    "start-scene": "renderer-test",
+    "window": {
+        "title": "Phong Lighting Test",
+        "size": {
+            "width": 1280,
+            "height": 720
+        },
+        "fullscreen": false
+    },
+    "screenshots": {
+        "directory": "screenshots/lighting-test",
+        "requests": [
+            { "file": "test-0.png", "frame": 1 }
+        ]
+    },
+    "scene": {
+        "assets": {
+            "shaders": {
+                "lit": {
+                    "vs": "assets/shaders/lit.vert",
+                    "fs": "assets/shaders/lit.frag"
+                },
+                "textured": {
+                    "vs": "assets/shaders/textured.vert",
+                    "fs": "assets/shaders/textured.frag"
+                }
+            },
+            "textures": {
+                "wood": "assets/textures/wood.jpg",
+                "moon": "assets/textures/moon.jpg",
+                "grass": "assets/textures/grass_ground_d.jpg",
+                "monkey": "assets/textures/monkey.png",
+                "sky": "assets/textures/sky.jpg"
+            },
+            "meshes": {
+                "cube": "assets/models/cube.obj",
+                "sphere": "assets/models/sphere.obj",
+                "plane": "assets/models/plane.obj",
+                "monkey": "assets/models/monkey.obj"
+            },
+            "samplers": {
+                "default": {
+                    "MAG_FILTER": "GL_LINEAR",
+                    "MIN_FILTER": "GL_LINEAR_MIPMAP_LINEAR",
+                    "WRAP_S": "GL_REPEAT",
+                    "WRAP_T": "GL_REPEAT"
+                }
+            },
+            "materials": {
+                "lit-wood": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": { "enabled": true, "culledFace": "GL_BACK" },
+                        "depthTesting": { "enabled": true }
+                    },
+                    "tint": [1, 1, 1, 1],
+                    "texture": "wood",
+                    "sampler": "default",
+                    "ambient": [0.2, 0.2, 0.2],
+                    "diffuse": [0.8, 0.8, 0.8],
+                    "specular": [0.5, 0.5, 0.5],
+                    "shininess": 32.0,
+                    "ambientLight": [0.1, 0.1, 0.15]
+                },
+                "lit-moon": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": { "enabled": true, "culledFace": "GL_BACK" },
+                        "depthTesting": { "enabled": true }
+                    },
+                    "tint": [1, 1, 1, 1],
+                    "texture": "moon",
+                    "sampler": "default",
+                    "ambient": [0.15, 0.15, 0.15],
+                    "diffuse": [0.7, 0.7, 0.7],
+                    "specular": [0.3, 0.3, 0.3],
+                    "shininess": 16.0,
+                    "ambientLight": [0.1, 0.1, 0.15]
+                },
+                "lit-grass": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": { "enabled": true, "culledFace": "GL_BACK" },
+                        "depthTesting": { "enabled": true }
+                    },
+                    "tint": [1, 1, 1, 1],
+                    "texture": "grass",
+                    "sampler": "default",
+                    "ambient": [0.2, 0.25, 0.2],
+                    "diffuse": [0.8, 0.9, 0.8],
+                    "specular": [0.1, 0.1, 0.1],
+                    "shininess": 8.0,
+                    "ambientLight": [0.1, 0.1, 0.15]
+                },
+                "lit-monkey": {
+                    "type": "lit",
+                    "shader": "lit",
+                    "pipelineState": {
+                        "faceCulling": { "enabled": true, "culledFace": "GL_BACK" },
+                        "depthTesting": { "enabled": true }
+                    },
+                    "tint": [1, 1, 1, 1],
+                    "texture": "monkey",
+                    "sampler": "default",
+                    "ambient": [0.2, 0.15, 0.1],
+                    "diffuse": [0.9, 0.7, 0.5],
+                    "specular": [0.8, 0.8, 0.8],
+                    "shininess": 64.0,
+                    "ambientLight": [0.1, 0.1, 0.15]
+                }
+            }
+        },
+        "world": {
+            "sky": "assets/textures/sky.jpg",
+            "entities": [
+                {
+                    "name": "camera",
+                    "position": [0, 3, 8],
+                    "rotation": [-15, 0, 0],
+                    "components": [
+                        {
+                            "type": "Camera",
+                            "cameraType": "perspective",
+                            "near": 0.1,
+                            "far": 100.0,
+                            "fovY": 60
+                        },
+                        {
+                            "type": "Free Camera Controller",
+                            "rotationSensitivity": 0.002,
+                            "positionSensitivity": [3.0, 3.0, 3.0],
+                            "speedupFactor": 5.0
+                        }
+                    ]
+                },
+                {
+                    "name": "directional-light",
+                    "position": [0, 10, 0],
+                    "rotation": [-45, 30, 0],
+                    "components": [
+                        {
+                            "type": "Light",
+                            "lightType": "directional",
+                            "color": [1.0, 0.95, 0.9],
+                            "direction": [0.5, -1.0, 0.3]
+                        }
+                    ]
+                },
+                {
+                    "name": "point-light-red",
+                    "position": [-3, 2, 0],
+                    "components": [
+                        {
+                            "type": "Light",
+                            "lightType": "point",
+                            "color": [1.0, 0.2, 0.2],
+                            "position": [-3, 2, 0],
+                            "attenuation": [1.0, 0.09, 0.032]
+                        }
+                    ]
+                },
+                {
+                    "name": "point-light-blue",
+                    "position": [3, 2, 0],
+                    "components": [
+                        {
+                            "type": "Light",
+                            "lightType": "point",
+                            "color": [0.2, 0.2, 1.0],
+                            "position": [3, 2, 0],
+                            "attenuation": [1.0, 0.09, 0.032]
+                        }
+                    ]
+                },
+                {
+                    "name": "spot-light",
+                    "position": [0, 5, 3],
+                    "components": [
+                        {
+                            "type": "Light",
+                            "lightType": "spot",
+                            "color": [1.0, 1.0, 0.8],
+                            "position": [0, 5, 3],
+                            "direction": [0, -1, -0.5],
+                            "attenuation": [1.0, 0.045, 0.0075],
+                            "coneAngles": [15, 30]
+                        }
+                    ]
+                },
+                {
+                    "name": "ground",
+                    "position": [0, -0.5, 0],
+                    "scale": [10, 1, 10],
+                    "components": [
+                        {
+                            "type": "Mesh Renderer",
+                            "mesh": "plane",
+                            "material": "lit-grass"
+                        }
+                    ]
+                },
+                {
+                    "name": "center-sphere",
+                    "position": [0, 1, 0],
+                    "scale": [1.5, 1.5, 1.5],
+                    "components": [
+                        {
+                            "type": "Mesh Renderer",
+                            "mesh": "sphere",
+                            "material": "lit-moon"
+                        }
+                    ]
+                },
+                {
+                    "name": "left-cube",
+                    "position": [-3, 0.5, -2],
+                    "rotation": [0, 45, 0],
+                    "components": [
+                        {
+                            "type": "Mesh Renderer",
+                            "mesh": "cube",
+                            "material": "lit-wood"
+                        }
+                    ]
+                },
+                {
+                    "name": "right-cube",
+                    "position": [3, 0.5, -2],
+                    "rotation": [0, -30, 0],
+                    "components": [
+                        {
+                            "type": "Mesh Renderer",
+                            "mesh": "cube",
+                            "material": "lit-wood"
+                        }
+                    ]
+                },
+                {
+                    "name": "monkey",
+                    "position": [0, 1, -4],
+                    "rotation": [0, 180, 0],
+                    "scale": [1.2, 1.2, 1.2],
+                    "components": [
+                        {
+                            "type": "Mesh Renderer",
+                            "mesh": "monkey",
+                            "material": "lit-monkey"
+                        }
+                    ]
+                }
+            ]
+        },
+        "renderer": {
+            "sky": "assets/textures/sky.jpg"
+        }
+    }
+}

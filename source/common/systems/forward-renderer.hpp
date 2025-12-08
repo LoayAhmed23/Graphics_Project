@@ -44,7 +44,7 @@ namespace our
         Texture2D *colorTarget, *depthTarget;
         TexturedMaterial *postprocessMaterial;
 
-        // Helper function to setup lighting uniforms for lit materials
+        // Helper method to setup lighting uniforms for lit materials
         void setupLightingUniforms(World *world, ShaderProgram *shader, const glm::vec3 &cameraPosition);
 
     public:

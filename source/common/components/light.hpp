@@ -2,11 +2,12 @@
 
 #include "../ecs/component.hpp"
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 namespace our
 {
 
-    // Enum for light types
+    // Light type enumeration
     enum class LightType
     {
         DIRECTIONAL = 0,
@@ -14,33 +15,36 @@ namespace our
         SPOT = 2
     };
 
-    // This component represents a light source in the scene
-    // Position and Direction can be either from TransformComponent OR specified directly
+    // Light component that can be attached to entities to create light sources
     class LightComponent : public Component
     {
     public:
-        LightType lightType;   // Type of light: Directional, Point, or Spot
-        glm::vec3 color;       // Light color (RGB)
-        glm::vec2 coneAngles;  // For spot lights: (inner angle, outer angle) in radians
-        glm::vec3 attenuation; // Attenuation coefficients (constant, linear, quadratic)
-        glm::vec3 direction;   // Optional explicit direction (if not zero, overrides transform)
-        glm::vec3 position;    // Optional explicit position (if not zero, overrides transform)
+        LightType lightType = LightType::DIRECTIONAL;
 
-        // The ID of this component type is "Light"
+        // Light color/intensity (RGB)
+        glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+        // Direction for directional/spot lights (in world space, direction FROM light)
+        // If zero, will be computed from entity's transform (-Z forward)
+        glm::vec3 direction = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        // Position for point/spot lights (in world space)
+        // If zero, will be extracted from entity's transform
+        glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
+
+        // Attenuation coefficients (constant, linear, quadratic)
+        // Attenuation = 1 / (constant + linear*d + quadratic*d²)
+        glm::vec3 attenuation = glm::vec3(1.0f, 0.0f, 0.0f); // No attenuation by default
+
+        // Cone angles for spot lights (inner, outer) in radians
+        // Inner cone: full intensity
+        // Outer cone: falloff to zero
+        glm::vec2 coneAngles = glm::vec2(glm::quarter_pi<float>() * 0.5f, glm::half_pi<float>() * 0.5f);
+
+        // The ID of this component type
         static std::string getID() { return "Light"; }
 
-        // Constructor with default values
-        LightComponent()
-        {
-            lightType = LightType::DIRECTIONAL;
-            color = glm::vec3(1.0f, 1.0f, 1.0f);
-            coneAngles = glm::vec2(glm::radians(30.0f), glm::radians(45.0f)); // Default spot light angles
-            attenuation = glm::vec3(1.0f, 0.0f, 0.0f);                        // No attenuation by default
-            direction = glm::vec3(0.0f);                                       // Zero means use transform
-            position = glm::vec3(0.0f);                                        // Zero means use transform
-        }
-
-        // Reads the light data from a json object
+        // Deserialize from JSON
         void deserialize(const nlohmann::json &data) override;
     };
 

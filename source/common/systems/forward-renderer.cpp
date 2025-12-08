@@ -2,7 +2,6 @@
 #include "../mesh/mesh-utils.hpp"
 #include "../texture/texture-utils.hpp"
 #include "../components/light.hpp"
-#include <iostream>
 
 namespace our
 {
@@ -21,9 +20,6 @@ namespace our
             }
         }
 
-        // DEBUG: Print light count
-        std::cout << "DEBUG: Found " << lights.size() << " lights in scene" << std::endl;
-
         // Set light count
         shader->set("lightCount", static_cast<int>(lights.size()));
 
@@ -35,11 +31,11 @@ namespace our
         {
             LightComponent *light = lights[i];
             Entity *lightEntity = light->getOwner();
-            
+
             // Use explicit direction/position if provided, otherwise extract from transform
             glm::vec3 position;
             glm::vec3 direction;
-            
+
             if (glm::length(light->direction) > 0.001f)
             {
                 // Use explicit direction
@@ -51,7 +47,7 @@ namespace our
                 glm::mat4 lightTransform = lightEntity->getLocalToWorldMatrix();
                 direction = glm::normalize(glm::vec3(lightTransform * glm::vec4(0, 0, -1, 0)));
             }
-            
+
             if (glm::length(light->position) > 0.001f)
             {
                 // Use explicit position
@@ -63,11 +59,6 @@ namespace our
                 glm::mat4 lightTransform = lightEntity->getLocalToWorldMatrix();
                 position = glm::vec3(lightTransform[3]);
             }
-
-            // DEBUG: Print light info
-            std::cout << "Light " << i << ": Type=" << static_cast<int>(light->lightType) 
-                      << " Color=(" << light->color.r << "," << light->color.g << "," << light->color.b << ")"
-                      << " Dir=(" << direction.x << "," << direction.y << "," << direction.z << ")" << std::endl;
 
             // Build uniform name prefix
             std::string prefix = "lights[" + std::to_string(i) + "].";
@@ -207,7 +198,6 @@ namespace our
         CameraComponent *camera = nullptr;
         opaqueCommands.clear();
         transparentCommands.clear();
-        std::cout << "DEBUG: Starting render, entity count: " << world->getEntities().size() << std::endl;
         for (auto entity : world->getEntities())
         {
             // If we hadn't found a camera yet, we look for a camera in this entity
@@ -216,7 +206,6 @@ namespace our
             // If this entity has a mesh renderer component
             if (auto meshRenderer = entity->getComponent<MeshRendererComponent>(); meshRenderer)
             {
-                std::cout << "DEBUG: Found mesh renderer!" << std::endl;
                 // We construct a command from it
                 RenderCommand command;
                 command.localToWorld = meshRenderer->getOwner()->getLocalToWorldMatrix();
@@ -288,7 +277,6 @@ namespace our
 
             // Check if this is a lit material and setup lighting
             LitMaterial *litMaterial = dynamic_cast<LitMaterial *>(command.material);
-            std::cout << "DEBUG: Material cast result: " << (litMaterial ? "LitMaterial" : "Other") << std::endl;
             if (litMaterial)
             {
                 // For lit materials, set model, view, projection matrices separately
