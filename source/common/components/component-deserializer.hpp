@@ -6,6 +6,9 @@
 #include "free-camera-controller.hpp"
 #include "movement.hpp"
 #include "light.hpp"
+#include "car-controller.hpp"
+#include "scrollable.hpp"
+#include "enemy-car.hpp"
 
 namespace our
 {
@@ -37,6 +40,18 @@ namespace our
         else if (type == LightComponent::getID())
         {
             component = entity->addComponent<LightComponent>();
+        }
+        else if (type == CarControllerComponent::getID())
+        {
+            component = entity->addComponent<CarControllerComponent>();
+        }
+        else if (type == ScrollableComponent::getID())
+        {
+            component = entity->addComponent<ScrollableComponent>();
+        }
+        else if (type == EnemyCarComponent::getID())
+        {
+            component = entity->addComponent<EnemyCarComponent>();
         }
         if (component)
             component->deserialize(data);

@@ -85,12 +85,20 @@ set(COMMON_SOURCES
         source/common/components/movement.cpp
         source/common/components/light.hpp
         source/common/components/light.cpp
+        source/common/components/car-controller.hpp
+        source/common/components/car-controller.cpp
+        source/common/components/scrollable.hpp
+        source/common/components/scrollable.cpp
+        source/common/components/enemy-car.hpp
+        source/common/components/enemy-car.cpp
         source/common/components/component-deserializer.hpp
 
         source/common/systems/forward-renderer.hpp
         source/common/systems/forward-renderer.cpp
         source/common/systems/free-camera-controller.hpp
         source/common/systems/movement.hpp
+        source/common/systems/car-controller.hpp
+        source/common/systems/enemy-spawner.hpp
 )
 
 # Define the directories in which to search for the included headers
