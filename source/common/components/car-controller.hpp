@@ -9,9 +9,9 @@ namespace our
     class CarControllerComponent : public Component
     {
     public:
-        float speed = 10.0f; // Movement speed
-        float minX = -12.0f; // Left road boundary
-        float maxX = 9.0f;   // Right road boundary
+        float speed = 15.0f; // Movement speed
+        float minX = -10.0f; // Left road boundary
+        float maxX = 10.0f;   // Right road boundary
 
         static std::string getID() { return "Car Controller"; }
 

@@ -49,12 +49,12 @@ class MaterialTestState: public our::State {
                 glm::mat4 V = glm::lookAt(eye, center, up);
 
                 float fov = glm::radians(camera.value("fov", 90.0f));
-                float near = camera.value("near", 0.01f);
-                float far = camera.value("far", 1000.0f);
+                float zNear = camera.value("near", 0.01f);
+                float zFar = camera.value("far", 1000.0f);
 
                 glm::ivec2 size = getApp()->getFrameBufferSize();
                 float aspect = float(size.x)/size.y;
-                glm::mat4 P = glm::perspective(fov, aspect, near, far);
+                glm::mat4 P = glm::perspective(fov, aspect, zNear, zFar);
 
                 VP = P * V;
             }

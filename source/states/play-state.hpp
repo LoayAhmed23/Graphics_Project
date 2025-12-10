@@ -8,7 +8,9 @@
 #include <systems/movement.hpp>
 #include <systems/car-controller.hpp>
 #include <systems/enemy-spawner.hpp>
+#include <systems/coin-spawner.hpp>
 #include <asset-loader.hpp>
+#include <imgui.h>
 
 // This state shows how to use the ECS framework and deserialization.
 class Playstate : public our::State
@@ -20,6 +22,7 @@ class Playstate : public our::State
     our::MovementSystem movementSystem;
     our::CarControllerSystem carController;
     our::EnemySpawnerSystem enemySpawner;
+    our::CoinSpawnerSystem coinSpawner;
 
     void onInitialize() override
     {
@@ -41,9 +44,19 @@ class Playstate : public our::State
         carController.enter(getApp());
         // Initialize enemy spawner
         enemySpawner.enter(getApp());
+        // Initialize coin spawner
+        coinSpawner.enter(getApp());
         // Then we initialize the renderer
         auto size = getApp()->getFrameBufferSize();
         renderer.initialize(size, config["renderer"]);
+
+        // Set up callback for speed boost effect (postprocess switching)
+        coinSpawner.setSpeedBoostCallback([this](bool enabled)
+                                          { renderer.setSpeedBoostEffect(enabled); });
+
+        // Set up callback for speed multiplier changes (sync with enemy spawner)
+        coinSpawner.setSpeedMultiplierCallback([this](float multiplier)
+                                               { enemySpawner.setSpeedMultiplier(multiplier); });
     }
 
     void onDraw(double deltaTime) override
@@ -53,6 +66,7 @@ class Playstate : public our::State
         cameraController.update(&world, (float)deltaTime);
         carController.update(&world, (float)deltaTime);
         enemySpawner.update(&world, (float)deltaTime);
+        coinSpawner.update(&world, (float)deltaTime);
         // And finally we use the renderer system to draw the scene
         renderer.render(&world);
 
@@ -66,6 +80,28 @@ class Playstate : public our::State
         }
     }
 
+    void onImmediateGui() override
+    {
+        // Display score HUD
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiCond_Always);
+        ImGui::Begin("Score", nullptr,
+                     ImGuiWindowFlags_NoTitleBar |
+                         ImGuiWindowFlags_NoResize |
+                         ImGuiWindowFlags_NoMove |
+                         ImGuiWindowFlags_NoBackground);
+
+        ImGui::SetWindowFontScale(2.0f);
+        ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.0f, 1.0f), "Coins: %d", coinSpawner.getScore());
+
+        if (coinSpawner.isSpeedBoostActive())
+        {
+            ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "SPEED BOOST!");
+        }
+
+        ImGui::End();
+    }
+
     void onDestroy() override
     {
         // Don't forget to destroy the renderer
@@ -74,6 +110,7 @@ class Playstate : public our::State
         cameraController.exit();
         carController.exit();
         enemySpawner.exit();
+        coinSpawner.exit();
         // Clear the world
         world.clear();
         // and we delete all the loaded assets to free memory on the RAM and the VRAM

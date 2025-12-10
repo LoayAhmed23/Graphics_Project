@@ -91,6 +91,8 @@ set(COMMON_SOURCES
         source/common/components/scrollable.cpp
         source/common/components/enemy-car.hpp
         source/common/components/enemy-car.cpp
+        source/common/components/coin.hpp
+        source/common/components/coin.cpp
         source/common/components/component-deserializer.hpp
 
         source/common/systems/forward-renderer.hpp
@@ -99,6 +101,7 @@ set(COMMON_SOURCES
         source/common/systems/movement.hpp
         source/common/systems/car-controller.hpp
         source/common/systems/enemy-spawner.hpp
+        source/common/systems/coin-spawner.hpp
 )
 
 # Define the directories in which to search for the included headers

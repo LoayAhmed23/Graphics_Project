@@ -9,6 +9,7 @@
 #include "car-controller.hpp"
 #include "scrollable.hpp"
 #include "enemy-car.hpp"
+#include "coin.hpp"
 
 namespace our
 {
@@ -52,6 +53,10 @@ namespace our
         else if (type == EnemyCarComponent::getID())
         {
             component = entity->addComponent<EnemyCarComponent>();
+        }
+        else if (type == CoinComponent::getID())
+        {
+            component = entity->addComponent<CoinComponent>();
         }
         if (component)
             component->deserialize(data);

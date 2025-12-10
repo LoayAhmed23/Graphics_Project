@@ -9,6 +9,7 @@
 #include <glad/gl.h>
 #include <vector>
 #include <algorithm>
+#include <string>
 
 namespace our
 {
@@ -44,6 +45,10 @@ namespace our
         Texture2D *colorTarget, *depthTarget;
         TexturedMaterial *postprocessMaterial;
 
+        // Speed boost postprocess material (motion blur)
+        TexturedMaterial *speedBoostMaterial;
+        bool useSpeedBoostEffect = false;
+
         // Helper method to setup lighting uniforms for lit materials
         void setupLightingUniforms(World *world, ShaderProgram *shader, const glm::vec3 &cameraPosition);
 
@@ -55,6 +60,10 @@ namespace our
         void destroy();
         // This function should be called every frame to draw the given world
         void render(World *world);
+
+        // Enable or disable the speed boost effect
+        void setSpeedBoostEffect(bool enabled) { useSpeedBoostEffect = enabled; }
+        bool isSpeedBoostEffectEnabled() const { return useSpeedBoostEffect; }
     };
 
 }

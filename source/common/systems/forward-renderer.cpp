@@ -165,6 +165,24 @@ namespace our
             // The default options are fine but we don't need to interact with the depth buffer
             // so it is more performant to disable the depth mask
             postprocessMaterial->pipelineState.depthMask = false;
+
+            // Create speed boost postprocess material (motion blur effect)
+            Sampler *speedBoostSampler = new Sampler();
+            speedBoostSampler->set(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            speedBoostSampler->set(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            speedBoostSampler->set(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            speedBoostSampler->set(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+            ShaderProgram *speedBoostShader = new ShaderProgram();
+            speedBoostShader->attach("assets/shaders/fullscreen.vert", GL_VERTEX_SHADER);
+            speedBoostShader->attach("assets/shaders/postprocess/speed-blur.frag", GL_FRAGMENT_SHADER);
+            speedBoostShader->link();
+
+            speedBoostMaterial = new TexturedMaterial();
+            speedBoostMaterial->shader = speedBoostShader;
+            speedBoostMaterial->texture = colorTarget;
+            speedBoostMaterial->sampler = speedBoostSampler;
+            speedBoostMaterial->pipelineState.depthMask = false;
         }
     }
 
@@ -189,6 +207,13 @@ namespace our
             delete postprocessMaterial->sampler;
             delete postprocessMaterial->shader;
             delete postprocessMaterial;
+        }
+        // Delete speed boost material
+        if (speedBoostMaterial)
+        {
+            delete speedBoostMaterial->sampler;
+            delete speedBoostMaterial->shader;
+            delete speedBoostMaterial;
         }
     }
 
@@ -367,7 +392,15 @@ namespace our
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             // TODO: (Req 11) Setup the postprocess material and draw the fullscreen triangle
-            postprocessMaterial->setup();
+            // Choose between normal postprocess and speed boost effect
+            if (useSpeedBoostEffect && speedBoostMaterial)
+            {
+                speedBoostMaterial->setup();
+            }
+            else
+            {
+                postprocessMaterial->setup();
+            }
             glBindVertexArray(postProcessVertexArray);
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
