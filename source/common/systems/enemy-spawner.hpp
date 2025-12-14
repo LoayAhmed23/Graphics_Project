@@ -11,6 +11,7 @@
 #include <random>
 #include <cmath>
 #include <algorithm>
+#include <vector>
 
 // For audio (Windows)
 #ifdef _WIN32
@@ -19,15 +20,13 @@
 
 namespace our
 {
-
-    // System to spawn and move enemy cars
     class EnemySpawnerSystem
     {
         Application *app;
         float spawnTimer = 0.0f;
-        float spawnInterval = 2.0f; // Spawn every 2 seconds
+        float spawnInterval = 1.5f; // Spawn every 2 seconds
         float minSpawnInterval = 1.0f;
-        float maxSpawnInterval = 3.0f;
+        float maxSpawnInterval = 10.0f;
 
         float spawnZ = -80.0f;  // Spawn far ahead (negative Z)
         float despawnZ = 60.0f; // Remove when past camera
@@ -35,16 +34,18 @@ namespace our
         float minX = -12.0f; // Left lane boundary
         float maxX = 9.0f;   // Right lane boundary
 
-        float collisionDistanceX = 1.9f; // Slightly less than 2.0 to allow grazing
-        float collisionDistanceZ = 3.8f; // Close to 4.0 to detect bumper-to-bumper contact
+        // AABB (Axis-Aligned Bounding Box) half-extents for collision
+        // These represent half the width and half the length of each car's bounding box
+        float playerHalfWidth = 1.0f;  // Half of car width (X axis)
+        float playerHalfLength = 2.0f; // Half of car length (Z axis)
+        float enemyHalfWidth = 1.0f;   // Half of enemy car width
+        float enemyHalfLength = 2.0f;  // Half of enemy car length
 
         bool gameOver = false;
-
-        // Time-based difficulty progression
         float gameTime = 0.0f;
         float baseEnemySpeed = 15.0f;
         float speedIncreaseRate = 0.5f; // Speed increase per second of gameplay
-        float maxEnemySpeed = 50.0f;
+        float maxEnemySpeed = 100.0f;
 
         // External speed multiplier (from coin system)
         float externalSpeedMultiplier = 1.0f;
@@ -77,17 +78,13 @@ namespace our
 
         void update(World *world, float deltaTime)
         {
-            // If game over, don't update
             if (gameOver)
                 return;
-
-            // Update game time for difficulty progression
             gameTime += deltaTime;
 
             // Update spawn timer
             spawnTimer -= deltaTime;
 
-            // Check keyboard input
             auto &keyboard = app->getKeyboard();
             bool isMovingForward = keyboard.isPressed(GLFW_KEY_W);
             bool isMovingBackward = keyboard.isPressed(GLFW_KEY_S);
@@ -106,7 +103,8 @@ namespace our
             // Find player car position and speed
             Entity *playerEntity = nullptr;
             float playerSpeed = 0.0f;
-            glm::vec3 playerPos(0.0f);
+            glm::vec3 playerPos(0.0f); // Initialize to zero
+            
             for (auto entity : world->getEntities())
             {
                 CarControllerComponent *car = entity->getComponent<CarControllerComponent>();
@@ -114,80 +112,85 @@ namespace our
                 {
                     playerEntity = entity;
                     playerSpeed = car->speed;
-                    playerPos = entity->localTransform.position;
+                    playerPos = entity->localTransform.position; // Now safe after assignment
                     break;
                 }
             }
 
-            // Calculate speed modifier based on player movement and external multiplier
-            float speedModifier = 0.0f;
-            if (isMovingForward)
-            { // But we need to be careful not to make them too fast relative to the world
-                speedModifier = playerSpeed * externalSpeedMultiplier;
-            }
-            else if (isMovingBackward)
+            // If no player found, skip collision detection
+            if (!playerEntity)
+                return;
+
+            // First pass: Calculate new positions for all enemies
+            struct EnemyUpdate
             {
-                // When player moves backward, enemies appear to move slower (or away)
-                speedModifier = -playerSpeed * externalSpeedMultiplier;
-            }
-            auto entities = world->getEntities();
-            for (auto entity : entities)
+                Entity* entity;
+                glm::vec3 prevPos;
+                glm::vec3 newPos;
+            };
+            std::vector<EnemyUpdate> enemyUpdates;
+
+            for (auto entity : world->getEntities())
             {
-                EnemyCarComponent *enemy = entity->getComponent<EnemyCarComponent>();
-                if (enemy)
+                auto enemy = entity->getComponent<EnemyCarComponent>();
+                if (!enemy) continue;
+
+                glm::vec3 prev = entity->localTransform.position;
+
+                float currentSpeed = getCurrentEnemySpeed();
+                float relBoost = 0;
+
+                if (isMovingForward)  relBoost = playerSpeed * externalSpeedMultiplier;
+                if (isMovingBackward) relBoost = -playerSpeed * externalSpeedMultiplier;
+
+                float finalZspeed = currentSpeed + relBoost;
+
+                glm::vec3 newPos = prev;
+                newPos.z += finalZspeed * deltaTime;
+
+                enemyUpdates.push_back({entity, prev, newPos});
+            }
+
+            // Second pass: Check collisions and apply movement
+            for (auto& u : enemyUpdates)
+            {
+                glm::vec3 prev = u.prevPos;
+                glm::vec3 next = u.newPos;
+
+                // Swept AABB for Z
+                float enemyMinZ = std::min(prev.z, next.z) - enemyHalfLength;
+                float enemyMaxZ = std::max(prev.z, next.z) + enemyHalfLength;
+
+                float enemyMinX = next.x - enemyHalfWidth;   // use final X
+                float enemyMaxX = next.x + enemyHalfWidth;
+
+                float playerMinX = playerPos.x - playerHalfWidth;
+                float playerMaxX = playerPos.x + playerHalfWidth;
+
+                float playerMinZ = playerPos.z - playerHalfLength;
+                float playerMaxZ = playerPos.z + playerHalfLength;
+
+                bool hitX = (playerMinX <= enemyMaxX) && (playerMaxX >= enemyMinX);
+                bool hitZ = (playerMinZ <= enemyMaxZ) && (playerMaxZ >= enemyMinZ);
+
+                if (hitX && hitZ)
                 {
-                    // Enemy moves toward player with time-based speed increase
-                    float currentSpeed = getCurrentEnemySpeed();
-                    float totalSpeed = currentSpeed + speedModifier;
-
-                    // Store previous position for swept collision detection
-                    float prevZ = entity->localTransform.position.z;
-                    entity->localTransform.position.z += totalSpeed * deltaTime;
-                    float newZ = entity->localTransform.position.z;
-
-                    // Check collision with player using swept collision check
-                    if (playerEntity)
-                    {
-                        glm::vec3 enemyPos = entity->localTransform.position;
-
-                        // Calculate distance between car centers on X axis
-                        float distX = std::abs(playerPos.x - enemyPos.x);
-
-                        // For Z axis, check if the enemy's movement path intersects with the player's collision box
-                        // This handles cases where the enemy moves so fast it "skips" over the player in one frame
-                        float minZ = std::min(prevZ, newZ);
-                        float maxZ = std::max(prevZ, newZ);
-
-                        float playerMinZ = playerPos.z - collisionDistanceZ;
-                        float playerMaxZ = playerPos.z + collisionDistanceZ;
-
-                        // Check for overlap between intervals [minZ, maxZ] and [playerMinZ, playerMaxZ]
-                        bool collisionZ = (minZ <= playerMaxZ && playerMinZ <= maxZ);
-
-                        // Both X AND Z must be within collision distance (or path intersected Z)
-                        if (distX < collisionDistanceX && collisionZ)
-                        {
-// Collision detected! Play crash sound and game over
-#ifdef _WIN32
-                            // Use system beep for crash sound (no audio file needed)
-                            Beep(300, 200); // Low frequency beep for crash
-#endif
-
-                            gameOver = true;
-                            app->changeState("menu");
-                            return;
-                        }
-                    }
-
-                    // Remove if past camera
-                    if (entity->localTransform.position.z > despawnZ)
-                    {
-                        world->markForRemoval(entity);
-                    }
+            #ifdef _WIN32
+                    Beep(300, 200);
+            #endif
+                    gameOver = true;
+                    app->changeState("menu");
+                    return;
                 }
+
+                // apply movement
+                u.entity->localTransform.position = next;
+
+                // despawn
+                if (next.z > despawnZ)
+                    world->markForRemoval(u.entity);
             }
 
-            // Clean up marked entities
             world->deleteMarkedEntities();
         }
 

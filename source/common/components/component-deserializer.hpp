@@ -10,6 +10,7 @@
 #include "scrollable.hpp"
 #include "enemy-car.hpp"
 #include "coin.hpp"
+#include "laser.hpp"
 
 namespace our
 {
@@ -57,6 +58,10 @@ namespace our
         else if (type == CoinComponent::getID())
         {
             component = entity->addComponent<CoinComponent>();
+        }
+        else if (type == LaserComponent::getID())
+        {
+            component = entity->addComponent<LaserComponent>();
         }
         if (component)
             component->deserialize(data);
