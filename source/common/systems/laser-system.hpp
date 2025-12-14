@@ -35,7 +35,9 @@ namespace our
         // Enemy dimensions for collision (should match enemy-spawner)
         float enemyHalfWidth = 1.0f;
         float enemyHalfLength = 2.0f;
-
+        
+        // Game state
+        int score = 0;
     public:
         LaserSystem() {}
 
@@ -43,7 +45,9 @@ namespace our
         {
             this->app = app;
             currentCooldown = 0.0f;
+            score = 0;
         }
+        int getScore() const { return score; }
 
         void update(World *world, float deltaTime)
         {
@@ -150,7 +154,7 @@ namespace our
                         world->markForRemoval(enemyData.entity);
                         // Destroy laser
                         world->markForRemoval(entity);
-
+                        score += 1;
                         // Play explosion sound
 #ifdef _WIN32
                         Beep(200, 100); // Low pitch for explosion

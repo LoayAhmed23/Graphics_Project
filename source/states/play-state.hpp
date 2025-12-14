@@ -97,7 +97,7 @@ class Playstate : public our::State
                          ImGuiWindowFlags_NoBackground);
 
         ImGui::SetWindowFontScale(2.0f);
-        ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.0f, 1.0f), "Coins: %d", coinSpawner.getScore());
+        ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.0f, 1.0f), "Score: %d", coinSpawner.getScore()+laserSystem.getScore());
 
         if (coinSpawner.isSpeedBoostActive())
         {
