@@ -247,7 +247,13 @@ namespace our
 
         void exit()
         {
-            // Nothing to clean up
+            // Ensure any active speed-boost effects are cleared when exiting (e.g., on game over)
+            speedBoostActive = false;
+            speedBoostTimer = 0.0f;
+            currentSpeedMultiplier = 1.0f;
+            // Notify callbacks so renderer and other systems reset their state
+            if(onSpeedBoostChanged) onSpeedBoostChanged(false);
+            if(onSpeedMultiplierChanged) onSpeedMultiplierChanged(currentSpeedMultiplier);
         }
     };
 
