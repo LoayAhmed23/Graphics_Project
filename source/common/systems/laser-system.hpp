@@ -23,10 +23,10 @@ namespace our
         Application *app;
 
         // Laser settings
-        float laserSpeed = 100.0f;          // Speed of laser beam
-        float laserLifetime = 2.0f;         // Max lifetime before despawn
-        float laserCooldown = 0.3f;         // Cooldown between shots
-        float currentCooldown = 0.0f;       // Current cooldown timer
+        float laserSpeed = 100.0f;    // Speed of laser beam
+        float laserLifetime = 2.0f;   // Max lifetime before despawn
+        float laserCooldown = 0.3f;   // Cooldown between shots
+        float currentCooldown = 0.0f; // Current cooldown timer
 
         // Laser dimensions for collision
         float laserHalfWidth = 0.2f;
