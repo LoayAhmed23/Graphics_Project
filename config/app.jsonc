@@ -49,7 +49,7 @@
                 "plane": "assets/models/plane.obj",
                 "sphere": "assets/models/sphere.obj",
                 "tree": "assets/models/tree.obj",
-                "car": "assets/models/car.obj"
+                "car": "assets/models/car4.obj"
             },
             "samplers":{
                 "default":{},
@@ -279,8 +279,8 @@
         // MOVED CAR HERE (Top level)
         // Adjusted position to be centered on the road
         "position": [0, 0, 30], 
-        "rotation": [0, 180, 0], 
-        "scale": [1, 1, 1], // Reset scale to normal (adjust as needed)
+        "rotation": [-90, 270, 0], 
+        "scale": [0.4, 0.4, 0.4], // Reset scale to normal (adjust as needed)
         "components": [
             {
                 "type": "Mesh Renderer",

@@ -208,8 +208,11 @@ namespace our
             float xPos = xDist(gen);
 
             enemy->localTransform.position = glm::vec3(xPos, 0.0f, spawnZ);
-            enemy->localTransform.rotation = glm::vec3(0.0f, 0.0f, 0.0f); // Front faces positive Z (toward player/camera)
-            enemy->localTransform.scale = glm::vec3(1.0f, 1.0f, 1.0f);
+            enemy->localTransform.rotation = glm::vec3(
+                -glm::half_pi<float>(),          // -90°
+                glm::three_over_two_pi<float>(), // 270°
+                0.0f);
+            enemy->localTransform.scale = glm::vec3(0.5f, 0.5f, 0.5f);
 
             // Add mesh renderer
             MeshRendererComponent *meshRenderer = enemy->addComponent<MeshRendererComponent>();
