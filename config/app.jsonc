@@ -289,7 +289,7 @@
             },
             {
                 "type": "Car Controller",
-                "speed": 15.0
+                "speed": 50.0
             }
         ]
     },

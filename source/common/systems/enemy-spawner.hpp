@@ -205,7 +205,7 @@ namespace our
             enemy->localTransform.position = glm::vec3(xPos, 0.0f, spawnZ);
             enemy->localTransform.rotation = glm::vec3(
                 -glm::half_pi<float>(),          // -90°
-                glm::three_over_two_pi<float>(), // 270°
+                glm::half_pi<float>(), // 90°
                 0.0f);
             enemy->localTransform.scale = glm::vec3(0.5f, 0.5f, 0.5f);
 
