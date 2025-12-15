@@ -32,7 +32,7 @@ namespace our
         float laserHalfWidth = 0.2f;
         float laserHalfLength = 1.0f;
 
-        // Enemy dimensions for collision (should match enemy-spawner)
+        // Enemy dimensions for collision
         float enemyHalfWidth = 1.0f;
         float enemyHalfLength = 2.0f;
         

@@ -35,8 +35,8 @@ namespace our
         float spawnZ = -80.0f;  // Spawn far ahead (negative Z)
         float despawnZ = 60.0f; // Remove when past camera
 
-        float minX = -12.0f; // Left lane boundary
-        float maxX = 9.0f;   // Right lane boundary
+        float minX = -10.0f; // Left lane boundary
+        float maxX = 10.0f;   // Right lane boundary
 
         // AABB (Axis-Aligned Bounding Box) half-extents for collision
         // These represent half the width and half the length of each car's bounding box
@@ -63,7 +63,7 @@ namespace our
         void enter(Application *app)
         {
             this->app = app;
-            spawnTimer = spawnInterval;
+            spawnTimer = 4.0f;
             gameOver = false;
             gameTime = 0.0f;
             externalSpeedMultiplier = 1.0f;
@@ -216,7 +216,7 @@ namespace our
 
             // Add enemy car component
             EnemyCarComponent *enemyComp = enemy->addComponent<EnemyCarComponent>();
-            enemyComp->speed = 15.0f; // Enemy speed
+            enemyComp->speed = getCurrentEnemySpeed(); // Enemy speed
         }
 
         void exit()
