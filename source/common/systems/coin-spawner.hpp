@@ -128,7 +128,6 @@ namespace our
 
             // Check keyboard input
             auto &keyboard = app->getKeyboard();
-            bool isMovingForward = keyboard.isPressed(GLFW_KEY_W);
 
             // Spawn coins consistently (always spawn when timer expires, not just when moving)
             if (spawnTimer <= 0.0f)
@@ -155,14 +154,9 @@ namespace our
 
             // Calculate speed modifier based on player movement and boost
             float speedModifier = 0.0f;
-            if (isMovingForward)
-            {
-                speedModifier = playerSpeed * currentSpeedMultiplier;
-            }
-            else if (keyboard.isPressed(GLFW_KEY_S))
-            {
-                speedModifier = -playerSpeed * currentSpeedMultiplier;
-            }
+
+            speedModifier = playerSpeed * currentSpeedMultiplier;
+
 
             // Move all coins and check for collection
             auto entities = world->getEntities();

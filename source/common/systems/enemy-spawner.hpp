@@ -89,12 +89,8 @@ namespace our
             // Update spawn timer
             spawnTimer -= deltaTime;
 
-            auto &keyboard = app->getKeyboard();
-            bool isMovingForward = keyboard.isPressed(GLFW_KEY_W);
-            bool isMovingBackward = keyboard.isPressed(GLFW_KEY_S);
-
             // Only spawn when driving forward
-            if (spawnTimer <= 0.0f && isMovingForward)
+            if (spawnTimer <= 0.0f)
             {
                 spawnEnemy(world);
 
@@ -144,8 +140,7 @@ namespace our
                 float currentSpeed = getCurrentEnemySpeed();
                 float relBoost = 0;
 
-                if (isMovingForward)  relBoost = playerSpeed * externalSpeedMultiplier;
-                if (isMovingBackward) relBoost = -playerSpeed * externalSpeedMultiplier;
+                relBoost = playerSpeed * externalSpeedMultiplier;
 
                 float finalZspeed = currentSpeed + relBoost;
 

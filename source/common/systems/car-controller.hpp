@@ -47,15 +47,8 @@ namespace our
             float forwardMovement = 0.0f;
             float horizontalMovement = 0.0f;
 
-            // W/S - scroll the environment (creates illusion of forward/backward)
-            if (keyboard.isPressed(GLFW_KEY_W))
-            {
-                forwardMovement = 1.0f; // Road moves backward (-Z), car appears to go forward
-            }
-            if (keyboard.isPressed(GLFW_KEY_S))
-            {
-                forwardMovement = -1.0f; // Road moves forward (+Z), car appears to go backward
-            }
+            // Always move forward
+            forwardMovement = 1.0f; // Road moves backward (-Z), car appears to go forward
             // A/D - move the car left/right
             if (keyboard.isPressed(GLFW_KEY_A))
             {
